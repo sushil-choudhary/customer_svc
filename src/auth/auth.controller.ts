@@ -10,8 +10,10 @@ import {
   RegisterResponse,
   LoginResponse,
   ValidateResponse,
+  PasswordResetResponse,
 } from './customer.pb';
 import { AuthService } from './service/auth.service';
+import { PasswordResetDto } from './dto/resetPassword.dto';
 
 @Controller()
 export class AuthController {
@@ -26,6 +28,13 @@ export class AuthController {
   @GrpcMethod(CUSTOMER_SERVICE_NAME, 'Login')
   private login(payload: LoginRequestDto): Promise<LoginResponse> {
     return this.service.login(payload);
+  }
+
+  @GrpcMethod(CUSTOMER_SERVICE_NAME, 'UpdatePassword')
+  private updatePassword(
+    payload: PasswordResetDto,
+  ): Promise<PasswordResetResponse> {
+    return this.service.updatePassword(payload);
   }
 
   @GrpcMethod(CUSTOMER_SERVICE_NAME, 'Validate')

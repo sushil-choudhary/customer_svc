@@ -10,10 +10,12 @@ import {
 import { Customers } from '../auth.entity';
 import {
   LoginResponse,
+  PasswordResetResponse,
   RegisterResponse,
   ValidateResponse,
 } from '../customer.pb';
 import { ERRORS } from 'src/helpers/constant';
+import { PasswordResetDto } from '../dto/resetPassword.dto';
 
 @Injectable()
 export class AuthService {
@@ -80,6 +82,40 @@ export class AuthService {
     const response = {
       refreshToken: token.refreshToken,
       accessToken: token.accessToken,
+      status: HttpStatus.OK,
+      error: null,
+    };
+
+    return response;
+  }
+
+  public async updatePassword(
+    data: PasswordResetDto,
+  ): Promise<PasswordResetResponse> {
+    const auth: Customers = await this.repository.findOne({
+      where: { email: data.email },
+    });
+    if (!auth) {
+      return {
+        status: HttpStatus.NOT_FOUND,
+        error: [ERRORS.USER_NOT_FOUND],
+      };
+    }
+    const isPasswordValid: boolean = this.jwtService.isPasswordValid(
+      data.currentPassword,
+      auth.password,
+    );
+    if (!isPasswordValid) {
+      return {
+        status: HttpStatus.NOT_FOUND,
+        error: [ERRORS.PASSOWRD_WRONG],
+      };
+    }
+    const password = this.jwtService.encodePassword(data.newPassword);
+    await this.repository.update(auth.id, {
+      password: password,
+    });
+    const response = {
       status: HttpStatus.OK,
       error: null,
     };
